@@ -1,22 +1,25 @@
-/* 
+
 CODE BASICS RESUME PROJECT CHALLENGE #4
 
 ATLIQ HARDWARE'S MANAGEMENT WANTS TO GAIN INSIGHTS INTO THE SALES OF ITS PRODUCTS. 
 AS A DATA ANALYST, MY TASK IS TO RESPOND TO 10 AD-HOC QUERIES ASSIGNED TO ME. 
-*/
 
-/* 
+
+
+
 1. Identify the unique markets in which the customer "Atliq Exclusive" operates 
 within the APAC region. This helps in understanding market presence and segmentation. 
-*/
+
 SELECT DISTINCT market
 FROM dim_customer 
 WHERE region = "APAC" AND customer = "Atliq Exclusive";
 
-/* 
+
+
+
 2. Calculate the percentage increase in unique products from 2020 to 2021. 
 This metric helps assess product growth over the years.
-*/
+
 WITH total_products AS (
     SELECT COUNT(DISTINCT product_code) AS total_products, fiscal_year AS year
     FROM fact_sales_monthly 
@@ -31,19 +34,23 @@ FROM total_products AS a
 LEFT JOIN total_products AS b ON a.year + 1 = b.year
 LIMIT 1;
 
-/* 
+
+
+
 3. Generate a report that lists the number of unique products for each segment, 
 sorted in descending order. This provides insights into product distribution across segments. 
-*/
+
 SELECT segment, COUNT(DISTINCT product_code) AS product_count
 FROM dim_product
 GROUP BY segment
 ORDER BY product_count DESC;
 
-/* 
+
+
+
 4. Determine the percentage change in unique products by segment between 2020 and 2021. 
 This analysis helps evaluate performance and growth per segment. 
-*/
+
 WITH total_products AS (
     SELECT COUNT(DISTINCT fs.product_code) AS total_products, fiscal_year, segment
     FROM fact_sales_monthly AS fs
@@ -61,10 +68,12 @@ LEFT JOIN total_products AS b ON (a.fiscal_year + 1 = b.fiscal_year AND a.segmen
 WHERE b.total_products IS NOT NULL
 ORDER BY a.fiscal_year, percentage_change DESC;
 
-/* 
+
+
+
 5. Find the products with the highest and lowest manufacturing costs. 
 This information is vital for understanding cost structure and pricing strategies. 
-*/
+
 SELECT *
 FROM (
     -- Subquery to find the product with the maximum manufacturing cost
@@ -80,11 +89,13 @@ FROM fact_manufacturing_cost AS fm
 INNER JOIN dim_product AS dp ON fm.product_code = dp.product_code
 WHERE manufacturing_cost = (SELECT MIN(manufacturing_cost) FROM fact_manufacturing_cost);
 
-/* 
+
+
+
 6. Report on the top 5 customers who received the highest average pre-invoice discount percentage 
 for the fiscal year 2021 in the Indian market. This helps identify valuable customers and 
 discounting strategies. 
-*/
+
 SELECT 
     dc.customer,
     dc.customer_code,
@@ -96,10 +107,14 @@ GROUP BY dc.customer
 ORDER BY average_discount_percentage DESC
 LIMIT 5;
 
-/* 
+
+
+
 7. Generate a comprehensive report of the gross sales amount for the customer "Atliq Exclusive" 
 for each month. This analysis provides insights into seasonal performance trends. 
-*/
+
+
+
 SELECT 
     YEAR(date) AS Year,
     MONTH(date) AS Month,
@@ -111,10 +126,12 @@ WHERE customer = "Atliq Exclusive"
 GROUP BY Month, Year
 ORDER BY Year, Month;
 
-/* 
+
+
+
 8. Determine which quarter in 2020 had the maximum quantities sold. 
 This information is useful for assessing sales performance over the quarters. 
-*/
+
 SELECT 
     CASE
         WHEN MONTH(date) BETWEEN 9 AND 11 THEN 'FIRST QUARTER'
@@ -129,10 +146,12 @@ WHERE fiscal_year = 2020
 GROUP BY QUARTER
 ORDER BY total_quantities_sold DESC;
 
-/* 
+
+
+
 9. Identify the sales channel with the highest gross sales in 2021 and calculate their percentage contributions. 
 This helps in understanding channel performance and allocation of resources. 
-*/
+
 WITH sales_channels AS (
     SELECT 
         channel,
@@ -148,10 +167,12 @@ SELECT *,
     ROUND(gross_sales_million * 100 / (SELECT SUM(gross_sales_million) FROM sales_channels), 2) AS percentage_contributions
 FROM sales_channels;
 
-/* 
+
+
+
 10. Report the top 3 products in each division that have the highest total sold quantity for the fiscal year 2021. 
 This analysis aids in inventory and sales planning.
-*/
+
 WITH ranked_products AS (
     -- Create a temporary table to hold total sold quantities with ranks
     WITH top_products AS (
@@ -174,11 +195,13 @@ SELECT *
 FROM ranked_products 
 WHERE rank_order IN (1, 2, 3);
 
-/* 
+
+
+
 Extra Insights
 11. Identify the number of products that were discontinued in 2021 compared to 2020. 
 This analysis helps in understanding product lifecycle management.
-*/
+
 SELECT DISTINCT product_code, product, segment, fiscal_year  
 FROM fact_sales_monthly AS fm
 JOIN dim_product AS dp USING (product_code)
